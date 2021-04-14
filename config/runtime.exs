@@ -12,7 +12,8 @@ import Config
 if System.get_env("EXPOSE_APP") == "true" do
   config :livebook, LivebookWeb.Endpoint,
     http: [:inet6, port: System.fetch_env!("PORT") |> String.to_integer()],
-    url: [scheme: "https", host: System.fetch_env!("HOST"), port: 443]
+    url: [scheme: "https", host: System.fetch_env!("HOST"), port: 443],
+    server: true
 else
   config :livebook, LivebookWeb.Endpoint, http: [ip: {127, 0, 0, 1}, port: 8080]
 end
