@@ -33,7 +33,7 @@ RUN mix phx.digest
 RUN mix do compile, release
 
 # prepare release image
-FROM alpine:3.9 AS app
+FROM elixir:1.12.0-rc.0-alpine AS app
 RUN apk add --no-cache openssl ncurses-libs
 
 WORKDIR /app

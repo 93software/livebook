@@ -10,6 +10,7 @@ defmodule Livebook.MixProject do
       compilers: [:phoenix] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
+      releases: releases(),
       deps: deps(),
       escript: escript(),
       preferred_cli_env: preferred_cli_env()
@@ -62,5 +63,22 @@ defmodule Livebook.MixProject do
     [
       build: :prod
     ]
+  end
+
+  # Required for elixir executables to work in the release image.
+  #
+  # See: https://github.com/elixir-lang/elixir/issues/9286
+  defp releases do
+    [
+      livebook: [
+        steps: [:assemble, &copy_bin_start_boot/1]
+      ]
+    ]
+  end
+
+  defp copy_bin_start_boot(release) do
+    start_boot = Path.join(release.erts_source, "../bin/start.boot")
+    File.cp(start_boot, Path.join(release.path, "bin/start.boot"))
+    release
   end
 end
