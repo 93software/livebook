@@ -18,6 +18,10 @@ else
   config :livebook, LivebookWeb.Endpoint, http: [ip: {127, 0, 0, 1}, port: 8080]
 end
 
+if slack_webhook_url = System.get_env("SLACK_WEBHOOK_URL") do
+  config :livebook, Livebook.Notifier, webhook_url: slack_webhook_url
+end
+
 if config_env() == :prod do
   # We don't need persistent session, so it's fine to just
   # generate a new key everytime the app starts
