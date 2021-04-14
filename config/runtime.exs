@@ -5,6 +5,18 @@ import Config
 # config :livebook, :node, {:shortnames, "livebook"}
 # config :livebook, :node, {:longnames, :"livebook@127.0.0.1"}
 
+# For production, don't forget to configure the url host
+# to something meaningful, Phoenix uses this information
+# when generating URLs.
+
+if System.get_env("EXPOSE_APP") == "true" do
+  config :livebook, LivebookWeb.Endpoint,
+    http: [:inet6, port: System.fetch_env!("PORT") |> String.to_integer()],
+    url: [scheme: "https", host: System.fetch_env!("HOST"), port: 443]
+else
+  config :livebook, LivebookWeb.Endpoint, http: [ip: {127, 0, 0, 1}, port: 8080]
+end
+
 if config_env() == :prod do
   # We don't need persistent session, so it's fine to just
   # generate a new key everytime the app starts
