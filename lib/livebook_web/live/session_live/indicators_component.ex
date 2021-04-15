@@ -5,6 +5,12 @@ defmodule LivebookWeb.SessionLive.IndicatorsComponent do
   def render(assigns) do
     ~L"""
     <div class="flex flex-col space-y-2 items-center" data-element="notebook-indicators">
+      <span class="tooltip left" aria-label="Download this notebook to your computer">
+        <%= link to: Routes.download_path(@socket, :download_notebook, @session_id), class: "icon-button icon-outlined-button border-gray-200 hover:bg-blue-50 focus:bg-blue-50", target: "_blank" do %>
+          <%= remix_icon("file-download-line", class: "text-xl text-gray-400") %>
+        <% end %>
+      </span>
+
       <%= if @data_view.path do %>
         <%= if @data_view.dirty do %>
           <span class="tooltip left" aria-label="Autosave pending">

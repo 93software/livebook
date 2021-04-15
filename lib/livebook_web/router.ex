@@ -22,5 +22,6 @@ defmodule LivebookWeb.Router do
     live "/sessions/:id/cell-settings/:cell_id", SessionLive, :cell_settings
     live "/sessions/:id/cell-upload/:cell_id", SessionLive, :cell_upload
     get "/sessions/:id/images/:image", SessionController, :show_image
+    get "/sessions/:id/download", DownloadController, :download_notebook
   end
 end
