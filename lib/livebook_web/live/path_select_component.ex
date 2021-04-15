@@ -17,7 +17,16 @@ defmodule LivebookWeb.PathSelectComponent do
   @impl true
   def mount(socket) do
     inner_block = Map.get(socket.assigns, :inner_block, nil)
-    {:ok, assign(socket, inner_block: inner_block)}
+    {:ok, assign(socket, inner_block: inner_block, updates: 0)}
+  end
+
+  @impl true
+  def update(assigns, socket) do
+    socket = socket
+    |> assign(assigns)
+    |> assign(:updates, socket.assigns.updates + 1)
+
+    {:ok, socket}
   end
 
   @impl true
@@ -51,7 +60,7 @@ defmodule LivebookWeb.PathSelectComponent do
       </div>
       <div class="flex-grow -m-1 p-1 overflow-y-auto tiny-scrollbar">
         <div class="grid grid-cols-4 gap-2">
-          <%= for file <- list_matching_files(@path, @extnames, @running_paths) do %>
+          <%= for file <- list_matching_files(@path, @extnames, @running_paths, @updates) do %>
             <%= render_file(file, @phx_target) %>
           <% end %>
         </div>
@@ -92,7 +101,7 @@ defmodule LivebookWeb.PathSelectComponent do
     """
   end
 
-  defp list_matching_files(path, extnames, running_paths) do
+  defp list_matching_files(path, extnames, running_paths, _updates) do
     # Note: to provide an intuitive behavior when typing the path
     # we enter a new directory when it has a trailing slash,
     # so given "/foo/bar" we list files in "foo" and given "/foo/bar/

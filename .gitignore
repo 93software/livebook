@@ -45,3 +45,5 @@ npm-debug.log
 *.swp
 
 /.elixir_ls/
+
+/uploads/

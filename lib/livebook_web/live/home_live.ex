@@ -86,6 +86,14 @@ defmodule LivebookWeb.HomeLive do
                 session_summaries: @session_summaries %>
             <% end %>
           </div>
+          <div class="w-full py-12">
+            <h3 class="text-xl font-semibold text-gray-800 mb-5">
+              Upload notebooks
+            </h3>
+            <%= live_component @socket, LivebookWeb.SessionLive.UploadComponent,
+              id: "upload_notebooks",
+              path: @path %>
+          </div>
         </div>
       </div>
     </div>
