@@ -23,6 +23,7 @@ COPY priv priv
 
 # compile project
 COPY lib lib
+COPY README.md README.md
 RUN mix compile
 
 CMD ["mix", "phx.server"]
