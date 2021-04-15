@@ -25,7 +25,6 @@ defmodule Livebook.Application do
 
     with {:ok, _} = result <- Supervisor.start_link(children, opts) do
       display_startup_info()
-      notify_startup_info()
       result
     end
   end
@@ -81,12 +80,6 @@ defmodule Livebook.Application do
   defp display_startup_info() do
     if Phoenix.Endpoint.server?(:livebook, LivebookWeb.Endpoint) do
       IO.puts("[Livebook] Application running at #{access_url()}")
-    end
-  end
-
-  defp notify_startup_info() do
-    if Livebook.Notifier.configured?() do
-      Livebook.Notifier.notify("Livebook running at #{access_url()}")
     end
   end
 

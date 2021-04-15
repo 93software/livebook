@@ -19,10 +19,6 @@ else
   config :livebook, LivebookWeb.Endpoint, http: [ip: {127, 0, 0, 1}, port: 8080]
 end
 
-if slack_webhook_url = System.get_env("SLACK_WEBHOOK_URL") do
-  config :livebook, Livebook.Notifier, webhook_url: slack_webhook_url
-end
-
 if password = Livebook.Config.password!("LIVEBOOK_PASSWORD") do
   config :livebook, authentication_mode: :password, password: password
 else
