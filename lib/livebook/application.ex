@@ -7,7 +7,6 @@ defmodule Livebook.Application do
 
   def start(_type, _args) do
     ensure_distribution!()
-    initialize_token()
 
     children = [
       # Start the Telemetry supervisor
@@ -40,12 +39,33 @@ defmodule Livebook.Application do
 
   defp ensure_distribution!() do
     unless Node.alive?() do
-      System.cmd("epmd", ["-daemon"])
+      case System.cmd("epmd", ["-daemon"]) do
+        {_, 0} ->
+          :ok
+
+        _ ->
+          Livebook.Config.abort!("""
+          could not start epmd (Erlang Port Mapper Driver). Livebook uses epmd to \
+          talk to different runtimes. You may have to start epmd explicitly by calling:
+
+              epmd -daemon
+
+          Or by calling:
+
+              elixir --sname test -e "IO.puts node()"
+
+          Then you can try booting Livebook again
+          """)
+      end
+
       {type, name} = get_node_type_and_name()
 
       case Node.start(name, type) do
-        {:ok, _} -> :ok
-        {:error, _} -> raise "failed to start distributed node"
+        {:ok, _} ->
+          :ok
+
+        {:error, reason} ->
+          Livebook.Config.abort!("could not start distributed node: #{inspect(reason)}")
       end
     end
   end
@@ -58,19 +78,9 @@ defmodule Livebook.Application do
     :"livebook_#{Livebook.Utils.random_short_id()}"
   end
 
-  # Generates and configures random token if token auth is enabled
-  defp initialize_token() do
-    token_auth? = Application.fetch_env!(:livebook, :token_authentication)
-
-    if token_auth? do
-      token = Livebook.Utils.random_id()
-      Application.put_env(:livebook, :token, token)
-    end
-  end
-
   defp display_startup_info() do
     if Phoenix.Endpoint.server?(:livebook, LivebookWeb.Endpoint) do
-      IO.ANSI.format([:blue, "Livebook running at #{access_url()}"]) |> IO.puts()
+      IO.puts("[Livebook] Application running at #{access_url()}")
     end
   end
 

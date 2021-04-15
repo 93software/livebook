@@ -77,6 +77,28 @@ defmodule LivebookWeb.HomeLiveTest do
              |> element(~s{button[phx-click="fork"][disabled]}, "Fork")
              |> has_element?()
     end
+
+    @tag :tmp_dir
+    test "disables open when a write-protected notebook is selected",
+         %{conn: conn, tmp_dir: tmp_dir} do
+      {:ok, view, _} = live(conn, "/")
+
+      path = Path.join(tmp_dir, "write_protected.livemd")
+      File.touch!(path)
+      File.chmod!(path, 0o444)
+
+      view
+      |> element("form")
+      |> render_change(%{path: path})
+
+      assert view
+             |> element(~s{button[phx-click="open"][disabled]}, "Open")
+             |> has_element?()
+
+      assert view
+             |> element(~s{[aria-label="This file is write-protected, please fork instead"]})
+             |> has_element?()
+    end
   end
 
   describe "sessions list" do

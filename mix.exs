@@ -11,15 +11,14 @@ defmodule Livebook.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
-      escript: escript(),
-      preferred_cli_env: preferred_cli_env()
+      escript: escript()
     ]
   end
 
   def application do
     [
       mod: {Livebook.Application, []},
-      extra_applications: [:logger, :runtime_tools, :inets]
+      extra_applications: [:logger, :runtime_tools, :os_mon, :inets]
     ]
   end
 
@@ -31,7 +30,8 @@ defmodule Livebook.MixProject do
       {:phoenix, "~> 1.5.7"},
       # TODO: remove reference to the Git repo once LV 0.15.5 is released
       {:phoenix_live_view, "~> 0.15.0",
-       github: "phoenixframework/phoenix_live_view", branch: "master"},
+       github: "phoenixframework/phoenix_live_view", branch: "master", override: true},
+      {:phoenix_live_dashboard, "~> 0.4"},
       {:floki, ">= 0.27.0", only: :test},
       {:phoenix_html, "~> 2.11"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
@@ -55,12 +55,6 @@ defmodule Livebook.MixProject do
     [
       main_module: LivebookCLI,
       app: nil
-    ]
-  end
-
-  defp preferred_cli_env() do
-    [
-      build: :prod
     ]
   end
 end

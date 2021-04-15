@@ -1,7 +1,7 @@
 defmodule Livebook.Delta.Operation do
   @moduledoc false
 
-  # An peration represents an atomic change applicable to a text.
+  # An operation represents an atomic change applicable to a text.
   #
   # For plain-text (our use case) an operation can be either of:
   #
@@ -22,7 +22,7 @@ defmodule Livebook.Delta.Operation do
   @spec insert(String.t()) :: t()
   def insert(string), do: {:insert, string}
 
-  @spec insert(non_neg_integer()) :: t()
+  @spec retain(non_neg_integer()) :: t()
   def retain(length), do: {:retain, length}
 
   @spec delete(non_neg_integer()) :: t()

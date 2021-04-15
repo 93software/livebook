@@ -26,6 +26,7 @@ defmodule Livebook.Session do
 
   @type summary :: %{
           session_id: id(),
+          pid: pid(),
           notebook_name: String.t(),
           path: String.t() | nil,
           images_dir: String.t()
@@ -504,6 +505,7 @@ defmodule Livebook.Session do
   defp summary_from_state(state) do
     %{
       session_id: state.session_id,
+      pid: self(),
       notebook_name: state.data.notebook.name,
       path: state.data.path,
       images_dir: images_dir_from_state(state)
@@ -675,7 +677,8 @@ defmodule Livebook.Session do
         handle_operation(state, {:mark_as_not_dirty, self()})
       else
         {:error, reason} ->
-          broadcast_error(state.session_id, "failed to save notebook - #{reason}")
+          message = :file.format_error(reason)
+          broadcast_error(state.session_id, "failed to save notebook - #{message}")
           state
       end
     else

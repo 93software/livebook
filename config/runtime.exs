@@ -1,9 +1,10 @@
 import Config
+require Logger
 
-# Configure the type of names used for distribution and the node name.
-# By default a random short name is used.
-# config :livebook, :node, {:shortnames, "livebook"}
-# config :livebook, :node, {:longnames, :"livebook@127.0.0.1"}
+config :livebook, LivebookWeb.Endpoint,
+  secret_key_base:
+    Livebook.Config.secret!("LIVEBOOK_SECRET_KEY_BASE") ||
+      Base.encode64(:crypto.strong_rand_bytes(48))
 
 # For production, don't forget to configure the url host
 # to something meaningful, Phoenix uses this information
@@ -22,10 +23,12 @@ if slack_webhook_url = System.get_env("SLACK_WEBHOOK_URL") do
   config :livebook, Livebook.Notifier, webhook_url: slack_webhook_url
 end
 
-if config_env() == :prod do
-  # We don't need persistent session, so it's fine to just
-  # generate a new key everytime the app starts
-  secret_key_base = :crypto.strong_rand_bytes(48) |> Base.encode64()
+if password = Livebook.Config.password!("LIVEBOOK_PASSWORD") do
+  config :livebook, authentication_mode: :password, password: password
+else
+  config :livebook, token: Livebook.Utils.random_id()
+end
 
-  config :livebook, LivebookWeb.Endpoint, secret_key_base: secret_key_base
+if port = Livebook.Config.port!("LIVEBOOK_PORT") do
+  config :livebook, LivebookWeb.Endpoint, http: [port: port]
 end

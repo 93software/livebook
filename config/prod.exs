@@ -1,8 +1,7 @@
 import Config
 
-# The output is shown to the end user,
-# so limit the amount of information we show.
-config :logger, level: :info
+# Start log-level in notice by default to reduce output
+config :logger, level: :notice
 
 # ## SSL Support
 #
