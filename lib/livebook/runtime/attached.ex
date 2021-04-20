@@ -6,7 +6,7 @@ defmodule Livebook.Runtime.Attached do
   # Such node must be already started and available,
   # Livebook doesn't manage its lifetime in any way
   # and only loads/unloads the necessary elements.
-  # The node can be an oridinary Elixir runtime,
+  # The node can be an ordinary Elixir runtime,
   # a Mix project shell, a running release or anything else.
 
   defstruct [:node]
@@ -54,7 +54,7 @@ defimpl Livebook.Runtime, for: Livebook.Runtime.Attached do
         code,
         container_ref,
         evaluation_ref,
-        prev_evaluation_ref \\ :initial,
+        prev_evaluation_ref,
         opts \\ []
       ) do
     ErlDist.Manager.evaluate_code(
@@ -73,5 +73,16 @@ defimpl Livebook.Runtime, for: Livebook.Runtime.Attached do
 
   def drop_container(runtime, container_ref) do
     ErlDist.Manager.drop_container(runtime.node, container_ref)
+  end
+
+  def request_completion_items(runtime, send_to, ref, hint, container_ref, evaluation_ref) do
+    ErlDist.Manager.request_completion_items(
+      runtime.node,
+      send_to,
+      ref,
+      hint,
+      container_ref,
+      evaluation_ref
+    )
   end
 end

@@ -19,6 +19,8 @@ else
   config :livebook, LivebookWeb.Endpoint, http: [ip: {127, 0, 0, 1}, port: 8080]
 end
 
+config :livebook, :root_path, Livebook.Config.root_path!("LIVEBOOK_ROOT_PATH")
+
 if password = Livebook.Config.password!("LIVEBOOK_PASSWORD") do
   config :livebook, authentication_mode: :password, password: password
 else

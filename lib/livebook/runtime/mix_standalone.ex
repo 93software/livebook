@@ -46,15 +46,16 @@ defmodule Livebook.Runtime.MixStandalone do
 
     spawn_link(fn ->
       parent_node = node()
-      child_node = random_node_name()
-      parent_process_name = random_process_name()
+      child_node = child_node_name(parent_node)
 
-      Utils.temporarily_register(self(), parent_process_name, fn ->
+      Utils.temporarily_register(self(), child_node, fn ->
+        argv = [parent_node]
+
         with {:ok, elixir_path} <- find_elixir_executable(),
              :ok <- run_mix_task("deps.get", project_path, output_emitter),
              :ok <- run_mix_task("compile", project_path, output_emitter),
-             eval <- child_node_ast(parent_node, parent_process_name) |> Macro.to_string(),
-             port <- start_elixir_mix_node(elixir_path, child_node, eval, project_path),
+             eval = child_node_eval_string(),
+             port = start_elixir_mix_node(elixir_path, child_node, eval, argv, project_path),
              {:ok, primary_pid} <- parent_init_sequence(child_node, port, output_emitter) do
           runtime = %__MODULE__{
             node: child_node,
@@ -86,14 +87,16 @@ defmodule Livebook.Runtime.MixStandalone do
     end
   end
 
-  defp start_elixir_mix_node(elixir_path, node_name, eval, project_path) do
+  defp start_elixir_mix_node(elixir_path, node_name, eval, argv, project_path) do
     # Here we create a port to start the system process in a non-blocking way.
     Port.open({:spawn_executable, elixir_path}, [
       :binary,
       :stderr_to_stdout,
       :hide,
-      args: elixir_flags(node_name) ++ ["-S", "mix", "run", "--eval", eval],
-      cd: project_path
+      cd: project_path,
+      args:
+        elixir_flags(node_name) ++
+          ["-S", "mix", "run", "--eval", eval, "--" | Enum.map(argv, &to_string/1)]
     ])
   end
 end
@@ -115,7 +118,7 @@ defimpl Livebook.Runtime, for: Livebook.Runtime.MixStandalone do
         code,
         container_ref,
         evaluation_ref,
-        prev_evaluation_ref \\ :initial,
+        prev_evaluation_ref,
         opts \\ []
       ) do
     ErlDist.Manager.evaluate_code(
@@ -134,5 +137,16 @@ defimpl Livebook.Runtime, for: Livebook.Runtime.MixStandalone do
 
   def drop_container(runtime, container_ref) do
     ErlDist.Manager.drop_container(runtime.node, container_ref)
+  end
+
+  def request_completion_items(runtime, send_to, ref, hint, container_ref, evaluation_ref) do
+    ErlDist.Manager.request_completion_items(
+      runtime.node,
+      send_to,
+      ref,
+      hint,
+      container_ref,
+      evaluation_ref
+    )
   end
 end

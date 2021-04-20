@@ -89,6 +89,10 @@ const Session = {
       handleSectionDeleted(this, sectionId);
     });
 
+    this.handleEvent("section_moved", ({ section_id: sectionId }) => {
+      handleSectionMoved(this, sectionId);
+    });
+
     this.handleEvent("cell_upload", ({ cell_id: cellId, url }) => {
       handleCellUpload(this, cellId, url);
     });
@@ -119,8 +123,17 @@ function handleDocumentKeyDown(hook, event) {
     keyBuffer.reset();
 
     if (key === "Escape") {
-      // Ignore Escape if it's supposed to close some Monaco input (like the find/replace box)
-      if (!event.target.closest(".monaco-inputbox")) {
+      const monacoInputOpen = !!event.target.closest(".monaco-inputbox");
+
+      const activeDescendant = event.target.getAttribute(
+        "aria-activedescendant"
+      );
+      const completionBoxOpen =
+        activeDescendant && activeDescendant.includes("suggest");
+
+      // Ignore Escape if it's supposed to close some Monaco input
+      // (like the find/replace box), or the completion box.
+      if (!monacoInputOpen && !completionBoxOpen) {
         escapeInsertMode(hook);
       }
     } else if (cmd && key === "Enter") {
@@ -502,6 +515,11 @@ function handleSectionDeleted(hook, sectionId) {
   if (hook.state.focusedSectionId === sectionId) {
     setFocusedCell(hook, null);
   }
+}
+
+function handleSectionMoved(hook, sectionId) {
+  const section = getSectionById(sectionId);
+  smoothlyScrollToElement(section);
 }
 
 function handleCellUpload(hook, cellId, url) {

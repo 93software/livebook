@@ -1,7 +1,7 @@
 defmodule LivebookWeb.SessionLive do
   use LivebookWeb, :live_view
 
-  alias Livebook.{SessionSupervisor, Session, Delta, Notebook}
+  alias Livebook.{SessionSupervisor, Session, Delta, Notebook, Runtime}
 
   @impl true
   def mount(%{"id" => session_id}, _session, socket) do
@@ -300,6 +300,13 @@ defmodule LivebookWeb.SessionLive do
     {:noreply, socket}
   end
 
+  def handle_event("move_section", %{"section_id" => section_id, "offset" => offset}, socket) do
+    offset = ensure_integer(offset)
+    Session.move_section(socket.assigns.session_id, section_id, offset)
+
+    {:noreply, socket}
+  end
+
   def handle_event("queue_cell_evaluation", %{"cell_id" => cell_id}, socket) do
     Session.queue_cell_evaluation(socket.assigns.session_id, cell_id)
     {:noreply, socket}
@@ -368,6 +375,29 @@ defmodule LivebookWeb.SessionLive do
      )}
   end
 
+  def handle_event("completion_request", %{"hint" => hint, "cell_id" => cell_id}, socket) do
+    data = socket.private.data
+
+    with {:ok, cell, _section} <- Notebook.fetch_cell_and_section(data.notebook, cell_id) do
+      if data.runtime do
+        prev_ref =
+          case Notebook.parent_cells_with_section(data.notebook, cell.id) do
+            [{parent, _} | _] -> parent.id
+            [] -> nil
+          end
+
+        ref = make_ref()
+        Runtime.request_completion_items(data.runtime, self(), ref, hint, :main, prev_ref)
+
+        {:reply, %{"completion_ref" => inspect(ref)}, socket}
+      else
+        {:reply, %{"completion_ref" => nil}, socket}
+      end
+    else
+      _ -> {:noreply, socket}
+    end
+  end
+
   @impl true
   def handle_info({:operation, operation}, socket) do
     case Session.Data.apply_operation(socket.private.data, operation) do
@@ -403,6 +433,11 @@ defmodule LivebookWeb.SessionLive do
      socket
      |> put_flash(:info, "Session has been closed")
      |> push_redirect(to: Routes.home_path(socket, :page))}
+  end
+
+  def handle_info({:completion_response, ref, items}, socket) do
+    payload = %{"completion_ref" => inspect(ref), "items" => items}
+    {:noreply, push_event(socket, "completion_response", payload)}
   end
 
   def handle_info(_message, socket), do: {:noreply, socket}
@@ -447,6 +482,14 @@ defmodule LivebookWeb.SessionLive do
   defp after_operation(socket, _prev_socket, {:move_cell, client_pid, cell_id, _offset}) do
     if client_pid == self() do
       push_event(socket, "cell_moved", %{cell_id: cell_id})
+    else
+      socket
+    end
+  end
+
+  defp after_operation(socket, _prev_socket, {:move_section, client_pid, section_id, _offset}) do
+    if client_pid == self() do
+      push_event(socket, "section_moved", %{section_id: section_id})
     else
       socket
     end
