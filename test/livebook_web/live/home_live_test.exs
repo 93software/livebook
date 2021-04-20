@@ -29,7 +29,7 @@ defmodule LivebookWeb.HomeLiveTest do
       path = Path.expand("../../../lib", __DIR__) <> "/"
 
       assert view
-             |> element("form")
+             |> element("form:first-child()")
              |> render_change(%{path: path}) =~ "livebook_web"
     end
 
@@ -39,7 +39,7 @@ defmodule LivebookWeb.HomeLiveTest do
       path = test_notebook_path("basic")
 
       view
-      |> element("form")
+      |> element("form:first-child()")
       |> render_change(%{path: path})
 
       assert assert {:error, {:live_redirect, %{to: to}}} =
@@ -56,7 +56,7 @@ defmodule LivebookWeb.HomeLiveTest do
       path = File.cwd!()
 
       view
-      |> element("form")
+      |> element("form:first-child()")
       |> render_change(%{path: path})
 
       assert view
@@ -70,7 +70,7 @@ defmodule LivebookWeb.HomeLiveTest do
       path = File.cwd!() |> Path.join("nonexistent.livemd")
 
       view
-      |> element("form")
+      |> element("form:first-child()")
       |> render_change(%{path: path})
 
       assert view
@@ -88,7 +88,7 @@ defmodule LivebookWeb.HomeLiveTest do
       File.chmod!(path, 0o444)
 
       view
-      |> element("form")
+      |> element("form:first-child()")
       |> render_change(%{path: path})
 
       assert view
